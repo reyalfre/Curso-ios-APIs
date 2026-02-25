@@ -32,12 +32,21 @@ struct ContentView: View {
                 NavigationLink(destination: VistaSonidos()) {
                     Text("Vista Sonidos")
                 }
-                NavigationLink(destination: VistaWebViewSimple()){
+                NavigationLink(destination: VistaWebViewSimple()) {
                     Text("Vista WebViewSimple")
                 }
-                NavigationLink(destination: VistaWebKit()){
+                NavigationLink(destination: VistaWebKit()) {
                     Text("Vista WebKit")
                 }
+                NavigationLink(destination: VistaFicheros()) {
+                    Text("Vista Ficheros")
+                }
+                /*
+                 Launch Screen:
+                 -Go to configuration in Target > Info
+                 - Add to key Launch Screen with +
+                 -Inside Launch Screen add -Image Name, -Background color
+                 */
             }
             .padding()
         }

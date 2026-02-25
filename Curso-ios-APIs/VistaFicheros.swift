@@ -7,9 +7,103 @@
 
 import SwiftUI
 
+struct Usuario: Codable, Identifiable {
+    var id = UUID()
+    var nombre: String
+    var edad: Int
+
+    enum CodingKeys: String, CodingKey {
+        case id, nombre, edad
+    }
+    // Init personalizado para decodificar
+    init(from decoder: any Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+
+        //tratamos de decodificar el id. Si no existe, le asignamos uno
+        self.id =
+            try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        self.nombre = try container.decode(String.self, forKey: .nombre)
+        self.edad = try container.decode(Int.self, forKey: .edad)
+    }
+}
+
 struct VistaFicheros: View {
+    @State private var usuarios: [Usuario] = []
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        VStack(spacing: 15) {
+            List {
+                ForEach($usuarios) {
+                    $usuario in
+                    HStack {
+                        TextField("Nombre", text: $usuario.nombre)
+                        TextField("Edad", value: $usuario.edad, format: .number)
+                            .frame(width: 80)
+                    }
+                }
+            }
+            Button("Cargar JSON del Bundle") { cargarJSONDelBundle() }
+            Button("Guardar JSON en Documents") { guardarJSONDelBundle() }
+            Button("Cargar JSON guardado en Documents") {
+                cargarJSONGuardado()
+            }
+        }
+    }
+    func cargarJSONDelBundle() {
+        print(Bundle.main.paths(forResourcesOfType: "json", inDirectory: nil))
+      //      print("No se encontró el archivo")
+      //      return
+       // })
+        guard
+            let url = Bundle.main.url(
+                forResource: "usuarios2",
+                withExtension: "json"
+            )
+        else {
+            print("No se encontró el archivo")
+            return
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            self.usuarios = try JSONDecoder().decode([Usuario].self, from: data)
+        } catch {
+            print("Error cargando el JSON:", error)
+        }
+
+    }
+    func guardarJSONDelBundle() {
+        let encoder = JSONEncoder()
+        encoder.outputFormatting = .prettyPrinted  // Para que el json sea legible
+        do {
+            let data = try encoder.encode(self.usuarios)
+            let url = getDocumentsDirectory().appendingPathComponent(
+                "usuarios_guardados.json"
+            )
+            try data.write(to: url)
+            print("Guardado en: \(url.path)")
+        } catch {
+            print("Error guardado", error)
+        }
+    }
+    func getDocumentsDirectory() -> URL {
+        let paths = FileManager.default.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        )
+        return paths[0]
+    }
+    func cargarJSONGuardado() {
+        let url = getDocumentsDirectory().appendingPathComponent("usuarios_guardados.json")
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            print("No existe el archivo guardado")
+            return
+        }
+        do{
+            let data = try Data(contentsOf: url)
+            self.usuarios = try JSONDecoder().decode([Usuario].self, from: data)
+        }
+        catch {
+            print("Error al cargar el archivo guardado:", error)
+        }
     }
 }
 
